@@ -10,6 +10,19 @@ Basically, I saw a pain point when I started using a multiplexer and my first th
 - Layout list is currently only top level in one zellij layout directory
 - List current sessions
 
+## Usage
+
+### Fish
+
+Add this to your fish config file
+
+```fish
+if set -q ZELLIJ
+else
+    zellijer
+end
+```
+
 ## TODO
 
 - Update in app help/hints
