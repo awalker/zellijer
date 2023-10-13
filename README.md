@@ -12,6 +12,8 @@ Basically, I saw a pain point when I started using a multiplexer and my first th
 
 ## Usage
 
+NOTE: it appears these directions may cause env to be broken. looking into it.
+
 ### Fish
 
 Add this to your fish config file

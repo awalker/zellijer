@@ -122,34 +122,30 @@ func loadLayouts() tea.Msg {
 }
 
 func fetchSessions() tea.Msg {
-	// TODO: use our error reporting
 	binaryName := "zellij"
 	bin, err := exec.LookPath(binaryName)
 	if err != nil {
-		log.Fatalf("Error: %s binary not found in PATH", binaryName)
+		return errMsg{err: fmt.Errorf("Error: %s binary not found in PATH", binaryName)}
 	}
 	cmd := exec.Command(bin, "list-sessions")
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Println("Error creating pipe:", err)
-		os.Exit(1)
+		return errMsg{err: fmt.Errorf("Error creating pipe: %w", err)}
 	}
 
 	if err := cmd.Start(); err != nil {
-		fmt.Println("Error starting command:", err)
-		os.Exit(1)
+		return errMsg{err: fmt.Errorf("Error starting command: %w", err)}
 	}
 
 	outputBytes, err := io.ReadAll(stdout)
 	if err != nil {
-		fmt.Println("Error reading output:", err)
-		os.Exit(1)
+		return errMsg{err: fmt.Errorf("Error reading output: %w", err)}
 	}
 
 	if err := cmd.Wait(); err != nil {
-		fmt.Println("Command failed:", err)
-		os.Exit(1)
+		// If there are no sessions, it exits with an error
+		return SessionsMsg{data: nil}
 	}
 
 	output := string(outputBytes)
@@ -265,6 +261,10 @@ func main() {
 				if err != nil {
 					log.Fatalf("Error: %v", err)
 				}
+			}
+			fmt.Print(m.msg)
+			if m.err != nil {
+				fmt.Printf("error: %v", m.err)
 			}
 		}
 	}
