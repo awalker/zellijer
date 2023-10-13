@@ -32,10 +32,11 @@ type model struct {
 	sessionItems []session
 	err          error
 	msg          string
-	bin          string
-	args         []string
+	bin          string   // FIXME: maybe global?
+	args         []string // TODO: split to exitModel?
 }
 
+// TODO: add model for naming new sessions
 type LayoutsMsg struct {
 	data []layout
 }
@@ -96,9 +97,9 @@ func (m *model) buildItems() []list.Item {
 	return items
 }
 
-// TODO: Load layouts
 func loadLayouts() tea.Msg {
-	// read the layouts directory
+	// FIXME: should ask zellij for its layout dir
+	// with `zellij setup --check` or `--dump-config`
 	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
 	if xdgConfigHome == "" {
 		xdgConfigHome = os.Getenv("HOME") + "/.config"
@@ -108,7 +109,6 @@ func loadLayouts() tea.Msg {
 	if err != nil {
 		return errMsg{err: err}
 	}
-	// for each file, add it to the list
 	list := []layout{}
 	for _, file := range dir {
 		name := file.Name()
@@ -118,56 +118,47 @@ func loadLayouts() tea.Msg {
 		list = append(list, layout(name))
 	}
 
-	// return the list
 	return LayoutsMsg{data: list}
 }
 
 func fetchSessions() tea.Msg {
+	// TODO: use our error reporting
 	binaryName := "zellij"
 	bin, err := exec.LookPath(binaryName)
 	if err != nil {
 		log.Fatalf("Error: %s binary not found in PATH", binaryName)
 	}
-	// Command to execute "zellij list-sessions" and capture its output
 	cmd := exec.Command(bin, "list-sessions")
 
-	// Set up a pipe to capture the command's output
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Println("Error creating pipe:", err)
 		os.Exit(1)
 	}
 
-	// Start the command
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Error starting command:", err)
 		os.Exit(1)
 	}
 
-	// Read the output
 	outputBytes, err := io.ReadAll(stdout)
 	if err != nil {
 		fmt.Println("Error reading output:", err)
 		os.Exit(1)
 	}
 
-	// Wait for the command to finish
 	if err := cmd.Wait(); err != nil {
 		fmt.Println("Command failed:", err)
 		os.Exit(1)
 	}
 
-	// Convert the output to a string and split it into lines
 	output := string(outputBytes)
 	lines := strings.Split(output, "\n")
 
-	// Create a slice to store the session names
 	sessionNames := []session{}
 
-	// Iterate through the lines and extract session names
 	for _, line := range lines {
 		if line != "" {
-			// You may need to adjust the parsing logic depending on the zellij output format
 			sessionNames = append(sessionNames, session(line))
 		}
 	}
@@ -219,13 +210,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.sessionItems = msg.data
 		return m, m.list.SetItems(m.buildItems())
 
-	// Is it a key press?
 	case tea.KeyMsg:
 
-		// Cool, what was the actual key pressed?
 		switch msg.String() {
 
-		// These keys should exit the program.
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
@@ -256,6 +244,8 @@ func (m model) View() string {
 	if m.err != nil {
 		return fmt.Sprintf("\nAn error occurred: %v\n\n", m.err)
 	}
+	// for debugging
+	// TODO: switch to logging to a file
 	if m.msg != "" {
 		return fmt.Sprintf("\nMessage: %v\n\n", m.msg)
 	}
@@ -268,7 +258,6 @@ func main() {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
 	} else {
-		fmt.Printf("And we're back! Here's the final model:\n\n%v\n", m)
 		if m, ok := m.(model); ok {
 			if m.args != nil {
 				err = m.exec()
