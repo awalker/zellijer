@@ -11,7 +11,9 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -34,6 +36,12 @@ type model struct {
 	msg          string
 	bin          string   // FIXME: maybe global?
 	args         []string // TODO: split to exitModel?
+}
+
+type nameModel struct {
+	prev       model
+	name       textinput.Model
+	cursorMode cursor.Mode
 }
 
 // TODO: add model for naming new sessions
@@ -75,6 +83,65 @@ func initialModel() model {
 	}
 	m.list.Title = "Starting Zellij..."
 	return m
+}
+
+func initialNameModel(p model) nameModel {
+	m := nameModel{
+		prev: p,
+		name: textinput.New(),
+	}
+	// TODO: create a random name or have a button that will create an un-named session
+	m.name.CharLimit = 50
+	return m
+}
+
+func (m nameModel) Init() tea.Cmd {
+	return textinput.Blink
+}
+
+func (m nameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+
+	case tea.KeyMsg:
+		switch msg.String() {
+
+		case "esc":
+			return m.prev, nil
+
+		case "enter":
+			// TODO: Validate and continue to exit with the correct action
+			return m.prev, nil
+		}
+	}
+	tm, cmd := m.name.Update(msg)
+	m.name = tm
+	return m, cmd
+}
+
+func (m nameModel) View() string {
+	/* NOTE: from the example
+	var b strings.Builder
+
+	for i := range m.inputs {
+		b.WriteString(m.inputs[i].View())
+		if i < len(m.inputs)-1 {
+			b.WriteRune('\n')
+		}
+	}
+
+	button := &blurredButton
+	if m.focusIndex == len(m.inputs) {
+		button = &focusedButton
+	}
+	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
+
+	b.WriteString(helpStyle.Render("cursor mode is "))
+	b.WriteString(cursorModeHelpStyle.Render(m.cursorMode.String()))
+	b.WriteString(helpStyle.Render(" (ctrl+r to change style)"))
+
+	return b.String()
+	*/
+	return m.name.View()
 }
 
 func (m *model) buildItems() []list.Item {
