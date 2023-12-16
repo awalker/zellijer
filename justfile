@@ -7,3 +7,6 @@ fmt:
 lint: fmt
 	golangci-lint run
 
+w:
+	watchexec -e go just lint 
+

@@ -11,9 +11,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -38,11 +36,11 @@ type model struct {
 	args         []string // TODO: split to exitModel?
 }
 
-type nameModel struct {
+/*type nameModel struct {
 	prev       model
 	name       textinput.Model
 	cursorMode cursor.Mode
-}
+}*/
 
 // TODO: add model for naming new sessions
 type LayoutsMsg struct {
@@ -61,8 +59,10 @@ type showMsg struct {
 	msg string
 }
 
-type layout string
-type session string
+type (
+	layout  string
+	session string
+)
 
 func (i layout) Title() string       { return string(i) }
 func (i layout) Description() string { return fmt.Sprintf("New session with layout %v", i) }
@@ -85,65 +85,43 @@ func initialModel() model {
 	return m
 }
 
-func initialNameModel(p model) nameModel {
-	m := nameModel{
-		prev: p,
-		name: textinput.New(),
-	}
-	// TODO: create a random name or have a button that will create an un-named session
-	m.name.CharLimit = 50
-	return m
-}
-
-func (m nameModel) Init() tea.Cmd {
-	return textinput.Blink
-}
-
-func (m nameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-
-	case tea.KeyMsg:
-		switch msg.String() {
-
-		case "esc":
-			return m.prev, nil
-
-		case "enter":
-			// TODO: Validate and continue to exit with the correct action
-			return m.prev, nil
+/*
+	func initialNameModel(p model) nameModel {
+		m := nameModel{
+			prev: p,
+			name: textinput.New(),
 		}
+		// TODO: create a random name or have a button that will create an un-named session
+		m.name.CharLimit = 50
+		return m
 	}
-	tm, cmd := m.name.Update(msg)
-	m.name = tm
-	return m, cmd
-}
 
-func (m nameModel) View() string {
-	/* NOTE: from the example
-	var b strings.Builder
+	func (m nameModel) Init() tea.Cmd {
+		return textinput.Blink
+	}
 
-	for i := range m.inputs {
-		b.WriteString(m.inputs[i].View())
-		if i < len(m.inputs)-1 {
-			b.WriteRune('\n')
+	func (m nameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch msg.String() {
+
+			case "esc":
+				return m.prev, nil
+
+			case "enter":
+				// TODO: Validate and continue to exit with the correct action
+				return m.prev, nil
+			}
 		}
+		tm, cmd := m.name.Update(msg)
+		m.name = tm
+		return m, cmd
 	}
 
-	button := &blurredButton
-	if m.focusIndex == len(m.inputs) {
-		button = &focusedButton
+	func (m nameModel) View() string {
+		return m.name.View()
 	}
-	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
-
-	b.WriteString(helpStyle.Render("cursor mode is "))
-	b.WriteString(cursorModeHelpStyle.Render(m.cursorMode.String()))
-	b.WriteString(helpStyle.Render(" (ctrl+r to change style)"))
-
-	return b.String()
-	*/
-	return m.name.View()
-}
-
+*/
 func (m *model) buildItems() []list.Item {
 	items := []list.Item{
 		item{title: "New Default Session", desc: "New"},
@@ -179,9 +157,7 @@ func loadLayouts() tea.Msg {
 	list := []layout{}
 	for _, file := range dir {
 		name := file.Name()
-		if strings.HasSuffix(name, ".kdl") {
-			name = strings.TrimSuffix(name, ".kdl")
-		}
+		name = strings.TrimSuffix(name, ".kdl")
 		list = append(list, layout(name))
 	}
 
