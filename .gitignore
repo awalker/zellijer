@@ -21,3 +21,5 @@
 go.work
 zellijer
 rel.sh
+coverage.txt
+dist/
