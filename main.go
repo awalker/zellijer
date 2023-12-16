@@ -53,8 +53,10 @@ type showMsg struct {
 	msg string
 }
 
-type layout string
-type session string
+type (
+	layout  string
+	session string
+)
 
 func (i layout) Title() string       { return string(i) }
 func (i layout) Description() string { return fmt.Sprintf("New session with layout %v", i) }
@@ -112,9 +114,7 @@ func loadLayouts() tea.Msg {
 	list := []layout{}
 	for _, file := range dir {
 		name := file.Name()
-		if strings.HasSuffix(name, ".kdl") {
-			name = strings.TrimSuffix(name, ".kdl")
-		}
+		name = strings.TrimSuffix(name, ".kdl")
 		list = append(list, layout(name))
 	}
 
