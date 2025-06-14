@@ -1,4 +1,7 @@
 # Zellijer
+
+**NOTE:** I haven't used or updated this in ages. Use `zellij -l welcome` instead.
+
 Frontend to a start Zellij by either attaching to existing sessions or using a layout.
 
 Zellijer is intended to be a program that could be launched when creating a toplevel terminal. It provides a choice of zellij sessions to attach to and a list of layouts to start a new session. 
